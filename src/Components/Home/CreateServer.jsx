@@ -1,12 +1,8 @@
 import React, { useRef, useState } from "react";
 import { CameraIcon, PlusIcon, XIcon } from "@heroicons/react/outline";
 import ReactLoading from "react-loading";
+import { createServer } from "../../api";
 
-//!Firebase firestore
-import { getFirestore, setDoc, doc, getDoc } from "firebase/firestore";
-//!Firebase Storage
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
-// import { db } from "../../firebase";
 
 const CreateServer = ({ set }) => {
   //!States for data
@@ -36,47 +32,20 @@ const CreateServer = ({ set }) => {
   const handleServerNameChange = (event) => {
     const name = event.target.value;
     setServerName(name);
-    
   };
-
+  const reset = () => {
+    setServerName("");
+    setSelectedImage(null);
+    setIsLoading(false);
+    set(false);
+  };
   //!Handle whole form submit
   const handleFormSubmit = async (event) => {
     try {
-      event.preventDefault();
-
-      setIsLoading(true);
-      //!Saving server image icon in firestore storage
-      const storage = getStorage();
-      const storageRef = ref(storage, `serverImages/${selectedImage.name}`);
-      await uploadBytes(storageRef, selectedImage);
-
-      //!Getting image url from firestore storage
-      const imageUrl = await getDownloadURL(storageRef);
-      
-
-      //!Saving server data in firebase firestore
-      const fireStore = getFirestore();
-      const serverDocRef = doc(fireStore, "servers", serverName);
-      const serverDocSnapshot = await getDoc(serverDocRef);
-
-      const serverData = {
-        name: serverName,
-        image: imageUrl,
-      };
-
-      if (serverDocSnapshot.exists()) {
-        //!If server document already exists then update it
-        await setDoc(serverDocRef, serverData, { merge: true });
-      } else {
-        //! If document does not exits then create a new one
-        await setDoc(serverDocRef, serverData);
-      }
+      await createServer(event, setIsLoading, selectedImage, serverName);
 
       //!Clear input values
-      setServerName("");
-      setSelectedImage(null);
-      setIsLoading(false);
-      set(false);
+      reset();
     } catch (err) {
       console.log(err);
     }

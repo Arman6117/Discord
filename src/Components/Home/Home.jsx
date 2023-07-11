@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { auth, db } from "../../firebase";
+import { auth } from "../../firebase";
 import { useNavigate } from "react-router-dom";
-import { Server } from "./ServerInfo";
+import Server from "./ServerInfo";
 import { PlusIcon } from "@heroicons/react/outline";
-import { collection, getDocs, doc, getDoc } from "firebase/firestore";
+import { fetchServerData } from "../../api";
+import {
+  fetchServerDataForCache,
+  cacheServerIcons,
+} from "../../service-worker.js";
 
 // import Channel from "./Channel";
 import CreateServer from "./CreateServer";
@@ -14,49 +18,41 @@ import ServerIcon from "./ServerIcon";
 import discord from "../../images/discord.png";
 
 const Home = () => {
+  useEffect(() => {
+    const fetchAndCacheData = async () => {
+      const {serverIcons} = await fetchServerDataForCache();
+      
+      cacheServerIcons(serverIcons);
+    };
+
+    fetchAndCacheData();
+
+  },[]);
   const [isOpen, setIsOpen] = useState(false);
   const [server, setServer] = useState([]);
+  const [serverName, setServerName] = useState("");
   const [user] = useAuthState(auth);
   const navigate = useNavigate();
   const handleClick = () => {
     setIsOpen(true);
   };
-
-  
-
-  const fetchServerData = async () => {
-    try {
-      const snapshot = await getDocs(collection(db, "servers"));
-      const serverData = [];
-
-      for (const serverDoc of snapshot.docs) {
-        const serverName = serverDoc.data().name;
-
-        const serverSubcollectionRef = doc(db, "servers", serverName);
-        const serverSubcollectionDoc = await getDoc(serverSubcollectionRef);
-
-        if (serverSubcollectionDoc.exists()) {
-          const subCollectionData = serverSubcollectionDoc.data().subcollection;
-
-          const server = {
-            id: serverName,
-            ...serverDoc.data(),
-            subcollection: subCollectionData,
-          };
-          serverData.push(server);
-        }
-      }
-
-      setServer(serverData);
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-
+ useEffect(()=>{
   if (user) {
-    fetchServerData();
+    fetchServerData(setServer);
   }
-
+ },[user])
+ 
+  const handleIconClick = (e) => {
+    const name = e.target.alt;
+    setServerName(name);
+  };
+  useEffect(() => {
+    // Check if server state has changed
+    if (server.length > 0) {
+      // Call fetchServerData to update the server data
+      fetchServerData(setServer);
+    }
+  }, [server]);
   return (
     <>
       {!user && navigate("/")}
@@ -66,13 +62,15 @@ const Home = () => {
             <img src={discord} alt="" className="h-8" />
           </div>
           <hr className="border-gray-700 w-8 mx-auto border" />
-          {server.map((server) => (
-            <ServerIcon
-              key={server.id}
-              icon={server.image}
-              title={server.name}
-            />
-          ))}
+          <div className="flex flex-col gap-3" onClick={handleIconClick}>
+            {server.map((server) => (
+              <ServerIcon
+                key={server.id}
+                icon={server.image}
+                title={server.name}
+              />
+            ))}
+          </div>
           <div className="server_default  hover:bg-discord_green group">
             <PlusIcon
               className="h-7 text-discord_green group-hover:text-white"
@@ -85,7 +83,7 @@ const Home = () => {
             <CreateServer set={setIsOpen} />
           </div>
         )}
-        <Server />
+        <Server name={serverName} />
       </div>
     </>
   );

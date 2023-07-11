@@ -3,7 +3,7 @@ import React from "react";
 const ServerIcon = ({ icon, title }) => {
   return (
     <>
-      {icon && (
+      
         <div className="w-12 h-12 overflow-hidden rounded-full cursor-pointer hover:rounded-2xl">
           <img
             src={icon}
@@ -11,7 +11,7 @@ const ServerIcon = ({ icon, title }) => {
             className="w-full h-full object-cover"
           />
         </div>
-      )}
+    
     </>
   );
 };
