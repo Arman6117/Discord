@@ -3,11 +3,11 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { auth } from "../../firebase";
 import { useNavigate } from "react-router-dom";
 import Server from "./ServerInfo";
+import Chat from './chat'
 import { PlusIcon } from "@heroicons/react/outline";
-import { fetchServerData } from "../../api";
 import {
-  fetchServerDataForCache,
   cacheServerIcons,
+  fetchServerDataForCache,
 } from "../../service-worker.js";
 
 // import Channel from "./Channel";
@@ -20,14 +20,13 @@ import discord from "../../images/discord.png";
 const Home = () => {
   useEffect(() => {
     const fetchAndCacheData = async () => {
-      const {serverIcons} = await fetchServerDataForCache();
-      
+      const { serverIcons } = await fetchServerDataForCache();
       cacheServerIcons(serverIcons);
     };
 
     fetchAndCacheData();
+  }, []);
 
-  },[]);
   const [isOpen, setIsOpen] = useState(false);
   const [server, setServer] = useState([]);
   const [serverName, setServerName] = useState("");
@@ -36,23 +35,23 @@ const Home = () => {
   const handleClick = () => {
     setIsOpen(true);
   };
- useEffect(()=>{
-  if (user) {
-    fetchServerData(setServer);
-  }
- },[user])
- 
+
+  useEffect(() => {
+    const fetchServerDataFromCache = async () => {
+      const { serverData } = await fetchServerDataForCache();
+      setServer(serverData);
+    };
+
+    if (user) {
+      fetchServerDataFromCache();
+    }
+  }, [user]);
+
   const handleIconClick = (e) => {
     const name = e.target.alt;
     setServerName(name);
   };
-  useEffect(() => {
-    // Check if server state has changed
-    if (server.length > 0) {
-      // Call fetchServerData to update the server data
-      fetchServerData(setServer);
-    }
-  }, [server]);
+
   return (
     <>
       {!user && navigate("/")}
@@ -83,7 +82,13 @@ const Home = () => {
             <CreateServer set={setIsOpen} />
           </div>
         )}
-        <Server name={serverName} />
+
+        <div>
+          <Server name={serverName} />
+        </div>
+        <div className="bg-[#36393f]  flex-grow">
+          <Chat />
+        </div>
       </div>
     </>
   );

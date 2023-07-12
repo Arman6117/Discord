@@ -23,6 +23,13 @@
     {
         @apply h-12 bg-[#36393f] rounded-full flex justify-center items-center cursor-pointer hover:rounded-2xl transition-all  duration-100  ease-out w-12
     }
+    .icon-container
+    {
+      @apply hover:bg-[#3a3c43] p-2 rounded-md
+    }
+    .icon{
+        @apply h-6 text-[#b9bbbe] cursor-pointer hover:text-[#dcddde]
+    }
 }
 html
 {
@@ -38,7 +45,7 @@ body
     }
     font-family: 'Nunito Sans', sans-serif;
     overflow-x: hidden;
-    background: gray;
+    // background: gray;
 }
 .overlay {
     position: fixed;

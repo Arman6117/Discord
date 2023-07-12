@@ -8,6 +8,7 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import Channel from "../Components/Home/Channel";
 
 //!Fetch Data from firestore
 export const fetchServerData = async (setServer) => {
@@ -105,20 +106,18 @@ export const createChannel = async (
     setIsLoading(true);
 
     const fireStore = getFirestore();
-    const serverRef = doc(fireStore,'servers',selectedServer)
-    const channelRef = doc(collection(serverRef,"channels"));
-    const serverDocSnapshot = await getDoc(channelRef);
+    const serverRef = doc(fireStore, "servers", selectedServer);
+
+    // Create a new channel document within the subcollection "channels" of the selected server
+    const channelCollectionRef = collection(serverRef, "channels");
+    const channelRef = doc(channelCollectionRef, channelName);
 
     const channelData = {
       name: channelName,
       created_at: new Date(),
     };
 
-    if (serverDocSnapshot.exists()) {
-      await setDoc(channelRef,channelData,{merge:true})
-    } else {
-      await setDoc(channelRef,channelData)
-    }
+    await setDoc(channelRef, channelData);
 
     setIsLoading(false);
   } catch (error) {
@@ -128,25 +127,30 @@ export const createChannel = async (
 };
 
 
-export const fetchChannelData = async (channelName, serverName) => {
+export const fetchChannelData = async (setChannel) => {
   try {
-    const fireStore = getFirestore();
-    const serverRef = doc(fireStore, "servers", serverName);
-    const channelSnapshot = await getDoc(
-      doc(serverRef, "channels", channelName)
-    );
+    const serverSnapshot = await getDocs(collection(db, "servers"));
+    const channelData = [];
 
-    if (channelSnapshot.exists()) {
-      const channelData = {
-        id: channelSnapshot.id,
-        ...channelSnapshot.data(),
-      };
-      return [channelData];
-    } else {
-      return [];
+    for (const serverDoc of serverSnapshot.docs) {
+      const serverName = serverDoc.data().name;
+
+      const channelCollectionRef = collection(db, "servers", serverName, "channels");
+      const channelSnapshot = await getDocs(channelCollectionRef);
+
+      channelSnapshot.forEach((channelDoc) => {
+        const channelName = channelDoc.data().name;
+        const channel = {
+          id: channelName,
+          ...channelDoc.data(),
+        };
+        channelData.push(channel);
+      });
     }
+
+    setChannel(channelData);
+    return channelData;
   } catch (error) {
     console.log(error.message);
-    return [];
   }
 };

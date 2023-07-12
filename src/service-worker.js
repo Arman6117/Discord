@@ -33,20 +33,24 @@ export const fetchServerDataForCache = async () => {
   }
 };
 
-export const cacheServerIcons = (serverIcons) => {
-  serverIcons.forEach((iconUrl) => {
-    const img = new Image();
-    img.src = iconUrl;
-    img.onload = () => {
-      // Image loaded and cached successfully
+export const cacheServerIcons = async (serverIcons) => {
+  try {
+    const cache = await caches.open("server-icons");
 
-    };
-    img.onerror = () => {
-      // Error loading image
-      
-    };
-  });
+    // Cache each icon URL
+    await Promise.all(
+      serverIcons.map(async (iconUrl) => {
+        const response = await fetch(iconUrl);
+        await cache.put(iconUrl, response);
+      })
+    );
+
+    console.log("Server icons cached successfully.");
+  } catch (error) {
+    console.log("Error caching server icons:", error.message);
+  }
 };
+
 
 // Fetch server data and icons
 fetchServerDataForCache().then(({ serverData, serverIcons }) => {

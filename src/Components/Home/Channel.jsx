@@ -1,39 +1,66 @@
-import React, { useState,useEffect } from "react";
-import { fetchChannelData } from "../../api/index";
-import { HashtagIcon } from "@heroicons/react/outline";
+import React, { useState, useEffect } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { HashtagIcon } from "@heroicons/react/outline";
+
+import { auth, db } from "../../firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { setChannelInfo } from "../../features/channelSlice";
-import { auth } from "../../firebase";
-const Channel = ({  serverName,channelName }) => {
-  const [channel, setServerChannel] = useState([]);
-  const [user] = useAuthState(auth)
-  
+import { useNavigate } from "react-router-dom";
+
+const Channel = ({ serverName }) => {
+  const [channels, setChannels] = useState([]);
+  const [user] = useAuthState(auth);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const fetchData = async () => {
-      const channelData = await fetchChannelData(channelName,serverName);
-      setServerChannel(channelData);
-    };
-    if(user){
     fetchData();
-     
+  }, [user, serverName]);
+
+  const fetchData = async () => {
+    if (user) {
+      const serverQuery = query(collection(db, "servers"), where("name", "==", serverName));
+      const serverSnapshot = await getDocs(serverQuery);
+
+      if (!serverSnapshot.empty) {
+        const serverDoc = serverSnapshot.docs[0];
+        const channelsRef = collection(serverDoc.ref, "channels");
+        const channelsSnapshot = await getDocs(channelsRef);
+
+        const channelData = channelsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        setChannels(channelData);
+      }
     }
-  }, [channelName,user,serverName]);
-  
+  };
+
+  const handleChannelClick = (channel) => {
+    dispatch(
+      setChannelInfo({
+        channelId: channel.id,
+        channelName: channel.name,
+      })
+    );
+    navigate(`/channels/${channel.name}`);
+  };
 
   return (
-    <>
-    <div className="flex flex-col  items-start gap-4 px-1 ">
-      {channel.map((channel) => (
-        <div className="hover:bg-[#3f4248] p-1 font-medium cursor-pointer items-center rounded-md hover:text-white w-full"  key={channel.id}>
-          <HashtagIcon  className="h-5 absolute text-[#c7cacd]   overflow-hidden" />
-          <span className="ml-7" >{channel.name}</span>
-          </div>
+    <div className="flex flex-col items-start gap-4 px-1">
+      {channels.map((channel) => (
+        <div
+          className="hover:bg-[#3f4248] p-1 font-medium cursor-pointer items-center rounded-md hover:text-white w-full"
+          key={channel.id}
+          onClick={() => handleChannelClick(channel)}
+        >
+          <HashtagIcon className="h-5 absolute text-[#c7cacd] overflow-hidden" />
+          <span className="ml-7">{channel.name}</span>
+        </div>
       ))}
-      </div>
-
-    </>
+    </div>
   );
 };
 

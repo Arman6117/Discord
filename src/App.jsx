@@ -30,7 +30,7 @@ const App = () => {
           />
           <Route
           path="/channels/:id"
-          element=<Home />
+          element={<Home />}
           />
         </Routes>
       </Router>

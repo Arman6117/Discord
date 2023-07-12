@@ -5,14 +5,13 @@ import {getFirestore} from 'firebase/firestore'
 
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyAPn6J5jk4yVx8fVAqdhBo7--uoDPClPw8",
-  authDomain: "discord-61f87.firebaseapp.com",
-  projectId: "discord-61f87",
-  storageBucket: "discord-61f87.appspot.com",
-  messagingSenderId: "253148458599",
-  appId: "1:253148458599:web:466f26d1be3fe18cebaec2"
+  apiKey: "AIzaSyA0xsR9VpgT4JldHfar172ROx4mhg_Z-fQ",
+  authDomain: "discord-4bb56.firebaseapp.com",
+  projectId: "discord-4bb56",
+  storageBucket: "discord-4bb56.appspot.com",
+  messagingSenderId: "248047846427",
+  appId: "1:248047846427:web:f0338dbcd70a95bb78a4be"
 };
-
   const app = initializeApp(firebaseConfig);
 
   const db = getFirestore(app);
