@@ -20,7 +20,8 @@
     "react-svg": "^16.1.18",
     "sass": "^1.63.6",
     "tailwind-scrollbar-hide": "^1.1.7",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "workbox": "^0.0.0"
   },
   "scripts": {
     "start": "react-scripts start",

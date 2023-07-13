@@ -26,15 +26,16 @@
 }
 
 html {
+  @font-face {
+    font-family: gintoNord;
+    src: url('./Fonts/Ginto/Ginto-Nord-700.woff') format('woff');
+  }
   padding: 0;
   margin: 0;
 }
 
 body {
-  @font-face {
-    font-family: gintoNord;
-    src: url('./Fonts/Ginto/Ginto-Nord-700.woff') format('woff');
-  }
+
   font-family: 'Nunito Sans', sans-serif;
   overflow-x: hidden;
   
