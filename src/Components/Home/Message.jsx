@@ -32,11 +32,11 @@ console.log("Server Name: "+serverName + " channel name: "+ channelName + " id: 
             <p className='text-sm text-[#dcddde]'>{message}</p>
            
         </div>
-        {user?.email===email && (
+        {/* {user?.email===email && (
                 <div className='hover:bg-[#ed4245] p-1 ml-auto rounded-sm text-[#ed4245] hover:text-white cursor-pointer' onClick={handleClick}>
                     <TrashIcon className='h-5 hidden group-hover:inline '/>
                 </div>
-            )}
+            )} */}
     </div>
    </>
   )
