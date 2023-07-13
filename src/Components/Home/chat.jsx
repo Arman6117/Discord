@@ -27,9 +27,6 @@ const Chat = ({ serverName }) => {
   const channelId = useSelector(selectChannelId);
   const channelName = useSelector(selectChannelName);
   const [user] = useAuthState(auth);
-  const displayName = user.displayName;
-  const photoURL = user.photoURL;
-  const email = user.email;
 
   const inputRef = useRef("");
 
@@ -58,6 +55,10 @@ const Chat = ({ serverName }) => {
     });
   };
   const handleSubmit = async (event) => {
+    
+  const displayName = user.displayName;
+  const photoURL = user.photoURL;
+  const email = user.email;
     await sendMessage(
       event,
       channelId,

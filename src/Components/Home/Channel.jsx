@@ -16,7 +16,7 @@ const Channel = ({ serverName }) => {
 
   useEffect(() => {
     fetchData();
-  }, [user, serverName,]);
+  }, [user, serverName]);
 
   const fetchData = async () => {
     if (user) {

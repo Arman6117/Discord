@@ -8,7 +8,7 @@ import { PlusIcon } from "@heroicons/react/outline";
 import {
   cacheServerIcons,
   fetchServerDataForCache,
-} from "../../service-worker.js";
+} from "../../cache.js";
 
 // import Channel from "./Channel";
 import CreateServer from "./CreateServer";
