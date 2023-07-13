@@ -1,14 +1,17 @@
 import {
+  addDoc,
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
   getFirestore,
+  orderBy,
+  query,
   setDoc,
 } from "firebase/firestore";
 import { db } from "../firebase";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
-import Channel from "../Components/Home/Channel";
 
 //!Fetch Data from firestore
 export const fetchServerData = async (setServer) => {
@@ -94,7 +97,7 @@ export const createServer = async (
 };
 
 // import { getFirestore, collection, doc, setDoc, getDoc } from "firebase/firestore";
-
+//!Create new Channel
 export const createChannel = async (
   event,
   channelName,
@@ -126,7 +129,7 @@ export const createChannel = async (
   }
 };
 
-
+//!Fetch channel data
 export const fetchChannelData = async (setChannel) => {
   try {
     const serverSnapshot = await getDocs(collection(db, "servers"));
@@ -135,7 +138,12 @@ export const fetchChannelData = async (setChannel) => {
     for (const serverDoc of serverSnapshot.docs) {
       const serverName = serverDoc.data().name;
 
-      const channelCollectionRef = collection(db, "servers", serverName, "channels");
+      const channelCollectionRef = collection(
+        db,
+        "servers",
+        serverName,
+        "channels"
+      );
       const channelSnapshot = await getDocs(channelCollectionRef);
 
       channelSnapshot.forEach((channelDoc) => {
@@ -152,5 +160,85 @@ export const fetchChannelData = async (setChannel) => {
     return channelData;
   } catch (error) {
     console.log(error.message);
+  }
+};
+
+//!Send message to channels
+export const sendMessage = async (
+  event,
+  channelId,
+  inputRef,
+  serverName,
+  channelName,
+  displayName,
+  photoURL,
+  email
+) => {
+  try {
+    event.preventDefault();
+    if (inputRef.current.value.trim() !== "") {
+      const message = inputRef.current.value.trim();
+      inputRef.current.value = "";
+
+      if (channelId) {
+        const messageRef = collection(
+          db,
+          "servers",
+          serverName,
+          "channels",
+          channelName,
+          "messages"
+        );
+
+        await addDoc(messageRef, {
+          message,
+          timeStamp: new Date(),
+          user: displayName,
+          userImage: photoURL,
+          email: email,
+        });
+      }
+    }
+  } catch (err) {
+    console.log(err.message);
+  }
+};
+
+//!Fetching the messages
+export const getMessages = async (serverName, channelName) => {
+  try {
+    const messageRef = collection(
+      db,
+      "servers",
+      serverName,
+      "channels",
+      channelName,
+      "messages"
+    );
+    const messageQuery = query(messageRef, orderBy("timeStamp"));
+
+    const snapshot = await getDocs(messageQuery);
+
+    const messages = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+    return messages;
+  } catch (error) {
+    console.log(error.message);
+    return []
+  }
+};
+
+//!Delete message
+export const deleteMessage = async (serverName, channelName, messageId) => {
+  try {
+    await deleteDoc(
+      doc(db, "servers", serverName, "channels", channelName, "messages", messageId)
+    );
+    console.log("Message deleted successfully");
+  } catch (error) {
+    console.log("Error deleting message:", error);
+    throw error;
   }
 };

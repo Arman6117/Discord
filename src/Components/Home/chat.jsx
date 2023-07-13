@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import {
   selectChannelId,
@@ -19,20 +19,58 @@ import {
   UsersIcon,
 } from "@heroicons/react/solid";
 // import {useCollection} from 'react-firebase-hooks/'
-
-const Chat = () => {
+import { sendMessage } from "../../api/index";
+import { getMessages } from "../../api/index";
+import Message from "./Message";
+const Chat = ({ serverName }) => {
+  const [messages, setMessages] = useState([]);
   const channelId = useSelector(selectChannelId);
   const channelName = useSelector(selectChannelName);
   const [user] = useAuthState(auth);
-  //   const [messages] = useCollection()
+  const displayName = user.displayName;
+  const photoURL = user.photoURL;
+  const email = user.email;
+
   const inputRef = useRef("");
 
-  const sendMessage = (event) => {
-    event.preventDefault();
+  const chatRef = useRef(null);
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (channelName && serverName) {
+        const fetchedMessages = await getMessages(serverName, channelName);
+        setMessages(fetchedMessages);
+      }
+    };
 
-    if (inputRef.current.value !== "") {
-    }
+    const messageUpdateInterval = setInterval(fetchMessages, 1000);
+
+    fetchMessages();
+
+    return () => {
+      clearInterval(messageUpdateInterval);
+    };
+  }, [channelName, serverName,messages]);
+
+  const scrollToBottom = () => {
+    chatRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   };
+  const handleSubmit = async (event) => {
+    await sendMessage(
+      event,
+      channelId,
+      inputRef,
+      serverName,
+      channelName,
+      displayName,
+      photoURL,
+      email
+    );
+    scrollToBottom();
+  };
+
   return (
     <>
       <div className="flex flex-col h-screen">
@@ -57,7 +95,27 @@ const Chat = () => {
             <QuestionMarkCircleIcon className="icon" />
           </div>
         </header>
-        <main className="flex-grow overflow-y-scroll scrollbar-hide"></main>
+        <main className="flex-grow overflow-y-scroll scrollbar-hide">
+          {messages?.map((data) => {
+            const { message, timeStamp, user, userImage, email } = data;
+
+            return (
+              <Message
+                id={data.id}
+                key={data.id}
+                message={message}
+                timeStamp={timeStamp}
+                name={user}
+                email={email}
+                photo={userImage}
+                server={serverName}
+                channel={channelName}
+              />
+            );
+          })}
+
+          <div ref={chatRef} className="pb-16" />
+        </main>
         <div className="flex items-center p-2.5 bg-[#40444b] mx-5 mb-7 rounded-lg">
           <PlusCircleIcon className="icon mr-4 " />
           <form className="flex-grow">
@@ -70,7 +128,7 @@ const Chat = () => {
               className="bg-transparent outline-none text-[#dcddde] w-full placeholder-slate-[#72767d] "
               ref={inputRef}
             />
-            <button hidden type="submit" onClick={sendMessage}>
+            <button hidden type="submit" onClick={handleSubmit}>
               Send
             </button>
           </form>

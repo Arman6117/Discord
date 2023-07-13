@@ -87,7 +87,7 @@ const Home = () => {
           <Server name={serverName} />
         </div>
         <div className="bg-[#36393f]  flex-grow">
-          <Chat />
+          <Chat serverName={serverName} />
         </div>
       </div>
     </>
